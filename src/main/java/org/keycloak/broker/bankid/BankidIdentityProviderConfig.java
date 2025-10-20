@@ -22,6 +22,10 @@ public class BankidIdentityProviderConfig extends IdentityProviderModel {
 	public static final String BANKID_SAVE_NIN_HASH = "bankid_save_nin_hash";
 	public static final String BANKID_CONNECTION_POOL_SIZE = "bankid_connection_pool_size";
 	public static final String BANKID_MAX_POOLED_PER_ROUTE = "bankid_max_pooled_per_route";
+	public static final String BANKID_CONNECTION_TTL = "bankid_connection_ttl";
+	public static final String BANKID_SOCKET_TIMEOUT = "bankid_socket_timeout";
+	public static final String BANKID_ESTABLISH_CONNECTION_TIMEOUT = "bankid_establish_connection_timeout";
+	public static final String BANKID_MAX_CONNECTION_IDLE_TIME = "bankid_max_connection_idle_time";
 
 	private KeyStore keyStore;
 	private KeyStore truststore;
@@ -89,6 +93,22 @@ public class BankidIdentityProviderConfig extends IdentityProviderModel {
 		int value = parsePositiveInt(BANKID_MAX_POOLED_PER_ROUTE, 50);
 		int total = getConnectionPoolSize();
 		return value > total ? total : value;
+	}
+
+	public int getConnectionTTL() {
+		return parsePositiveInt(BANKID_CONNECTION_TTL, 300000);
+	}
+
+	public int getSocketTimeout() {
+		return parsePositiveInt(BANKID_SOCKET_TIMEOUT, 15000);
+	}
+
+	public int getEstablishConnectionTimeout() {
+		return parsePositiveInt(BANKID_ESTABLISH_CONNECTION_TIMEOUT, 15000);
+	}
+
+	public int getMaxConnectionIdleTime() {
+		return parsePositiveInt(BANKID_MAX_CONNECTION_IDLE_TIME, 30000);
 	}
 
 	private int parsePositiveInt(String key, int defaultValue) {
