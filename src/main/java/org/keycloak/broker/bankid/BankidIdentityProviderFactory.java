@@ -3,6 +3,7 @@ package org.keycloak.broker.bankid;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.HttpClient;
 import org.keycloak.broker.bankid.client.SimpleBankidClient;
@@ -75,15 +76,31 @@ public class BankidIdentityProviderFactory extends AbstractIdentityProviderFacto
 				.defaultValue(false)
 				.type(ProviderConfigProperty.BOOLEAN_TYPE).add()
 
-		.property().name(BankidIdentityProviderConfig.BANKID_CONNECTION_POOL_SIZE).label("Connection pool size").helpText("Total HTTP connections available for BankID calls.")
-		.defaultValue("200")
-		.type(ProviderConfigProperty.STRING_TYPE).add()
+				.property().name(BankidIdentityProviderConfig.BANKID_CONNECTION_POOL_SIZE).label("Connection pool size").helpText("Total HTTP connections available for BankID calls.")
+				.defaultValue("200")
+				.type(ProviderConfigProperty.STRING_TYPE).add()
 
-		.property().name(BankidIdentityProviderConfig.BANKID_MAX_POOLED_PER_ROUTE).label("Connections per host").helpText("Maximum concurrent connections to a single BankID endpoint.")
-		.defaultValue("50")
-		.type(ProviderConfigProperty.STRING_TYPE).add()
+				.property().name(BankidIdentityProviderConfig.BANKID_MAX_POOLED_PER_ROUTE).label("Connections per host").helpText("Maximum concurrent connections to a single BankID endpoint.")
+				.defaultValue("50")
+				.type(ProviderConfigProperty.STRING_TYPE).add()
 
-			.build();
+				.property().name(BankidIdentityProviderConfig.BANKID_CONNECTION_TTL).label("Connection TTL").helpText("Connection TTL in milliseconds.")
+				.defaultValue("300000")
+				.type(ProviderConfigProperty.STRING_TYPE).add()
+
+				.property().name(BankidIdentityProviderConfig.BANKID_SOCKET_TIMEOUT).label("Socket timeout").helpText("Socket timeout in milliseconds.")
+				.defaultValue("15000")
+				.type(ProviderConfigProperty.STRING_TYPE).add()
+
+				.property().name(BankidIdentityProviderConfig.BANKID_ESTABLISH_CONNECTION_TIMEOUT).label("Establish connection timeout").helpText("Establish connection timeout in milliseconds.")
+				.defaultValue("15000")
+				.type(ProviderConfigProperty.STRING_TYPE).add()
+
+				.property().name(BankidIdentityProviderConfig.BANKID_MAX_CONNECTION_IDLE_TIME).label("Max connection idle time").helpText("Max connection idle time in milliseconds.")
+				.defaultValue("30000")
+				.type(ProviderConfigProperty.STRING_TYPE).add()
+
+				.build();
 	}
 
 	private String clientKey(BankidIdentityProviderConfig config) {
@@ -99,6 +116,10 @@ public class BankidIdentityProviderFactory extends AbstractIdentityProviderFacto
 					.proxyMappings(generateProxyMapping())
 					.connectionPoolSize(config.getConnectionPoolSize())
 					.maxPooledPerRoute(config.getConnectionPoolPerRoute())
+					.connectionTTL(config.getConnectionTTL(), TimeUnit.MILLISECONDS)
+					.socketTimeout(config.getSocketTimeout(), TimeUnit.MILLISECONDS)
+					.establishConnectionTimeout(config.getEstablishConnectionTimeout(), TimeUnit.MILLISECONDS)
+					.maxConnectionIdleTime(config.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS)
 					.build();
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to create BankID HTTP Client", e);
