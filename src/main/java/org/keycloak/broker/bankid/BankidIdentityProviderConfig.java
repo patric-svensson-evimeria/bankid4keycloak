@@ -104,7 +104,7 @@ public class BankidIdentityProviderConfig extends IdentityProviderModel {
 	}
 
 	public int getEstablishConnectionTimeout() {
-		return parsePositiveInt(BANKID_ESTABLISH_CONNECTION_TIMEOUT, 15000);
+		return parsePositiveInt(BANKID_ESTABLISH_CONNECTION_TIMEOUT, 10000);
 	}
 
 	public int getMaxConnectionIdleTime() {

@@ -93,7 +93,7 @@ public class BankidIdentityProviderFactory extends AbstractIdentityProviderFacto
 				.type(ProviderConfigProperty.STRING_TYPE).add()
 
 				.property().name(BankidIdentityProviderConfig.BANKID_ESTABLISH_CONNECTION_TIMEOUT).label("Establish connection timeout").helpText("Establish connection timeout in milliseconds.")
-				.defaultValue("15000")
+				.defaultValue("10000")
 				.type(ProviderConfigProperty.STRING_TYPE).add()
 
 				.property().name(BankidIdentityProviderConfig.BANKID_MAX_CONNECTION_IDLE_TIME).label("Max connection idle time").helpText("Max connection idle time in milliseconds.")
