@@ -74,7 +74,7 @@ public class SimpleBankidClient {
 		Map<String, String> requestData = new HashMap<>();
 		requestData.put("orderRef", orderrRef);
 		try {
-			sendRequest("/rp/v6.0/cancel", requestData);
+			String response = sendRequest("/rp/v6.0/cancel", requestData).asString();
 			return;
 		} catch (Exception e) {
 			logger.warn("Failed cancel BankID auth request " + orderrRef, e);
