@@ -235,7 +235,7 @@ public class BankidEndpoint {
 			bankidClient.sendCancel(orderRef);
 		}
 		return loginFormsProvider.setError("bankid.hints." + BankidHintCodes.cancelled.messageShortName)
-				.createErrorPage(Status.INTERNAL_SERVER_ERROR);
+				.createErrorPage(Status.OK);
 	}
 
 	@GET
