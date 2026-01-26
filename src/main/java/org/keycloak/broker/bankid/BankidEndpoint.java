@@ -1,6 +1,5 @@
 package org.keycloak.broker.bankid;
 
-import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -9,6 +8,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.io.IOException;
+import java.io.OutputStream;
+import jakarta.ws.rs.core.StreamingOutput;
+import javax.imageio.ImageIO;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -36,11 +42,9 @@ import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityProvider.AuthenticationCallback;
 import org.keycloak.connections.infinispan.InfinispanConnectionProvider;
 import org.keycloak.forms.login.LoginFormsProvider;
-import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
@@ -59,6 +63,10 @@ public class BankidEndpoint {
 	private Cache<Object, Object> actionTokenCache;
 
 	private static String qrCodePrefix = "bankid.";
+
+	private static final int QR_CODE_SIZE = 246;
+	private static final int QR_COLOR_ON = 0xFF000000;
+	private static final int QR_COLOR_OFF = 0xFFFFFFFF;
 
 	public BankidEndpoint(BankidIdentityProvider provider, BankidIdentityProviderConfig config,
 			AuthenticationCallback callback) {
@@ -279,24 +287,16 @@ public class BankidEndpoint {
 			String qrCode = qrCodePrefix + authResponse.getQrStartToken() + "." + elapsedTime + "." + qrAuthCode;
 
 			try {
-
-				int width = 246;
-				int height = 246;
-
 				QRCodeWriter writer = new QRCodeWriter();
-				final BitMatrix bitMatrix = writer.encode(
-						qrCode, BarcodeFormat.QR_CODE, width,
-						height);
 
-				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-				MatrixToImageWriter.writeToStream(bitMatrix, "png", bos);
-				bos.close();
+				final BitMatrix bitMatrix = writer.encode(qrCode, BarcodeFormat.QR_CODE, QR_CODE_SIZE, QR_CODE_SIZE);
 
 				CacheControl cc = new CacheControl();
 				cc.setNoStore(true);
 
-				ResponseBuilder builder = Response.ok(bos.toByteArray(), "image/png");
+				StreamingOutput stream = output -> writeQrCodePng(bitMatrix, output);
+				ResponseBuilder builder = Response.ok(stream, "image/png");
+
 				builder.cacheControl(cc);
 				return builder.build();
 			} catch (Exception e) {
@@ -304,6 +304,25 @@ public class BankidEndpoint {
 			}
 		}
 		return Response.serverError().build();
+	}
+
+	private void writeQrCodePng(BitMatrix bitMatrix, OutputStream output) throws IOException {
+		BufferedImage image = new BufferedImage(bitMatrix.getWidth(), bitMatrix.getHeight(), BufferedImage.TYPE_INT_RGB);
+		int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+		int width = bitMatrix.getWidth();
+		int height = bitMatrix.getHeight();
+		int index = 0;
+
+		// Fill the image backing array directly to avoid extra pixel buffers.
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+					pixels[index++] = bitMatrix.get(x, y) ? QR_COLOR_ON : QR_COLOR_OFF;
+			}
+		}
+
+		if (!ImageIO.write(image, "png", output)) {
+			throw new IOException("Failed to write QR code image");
+		}
 	}
 
 	public BankidIdentityProviderConfig getConfig() {
